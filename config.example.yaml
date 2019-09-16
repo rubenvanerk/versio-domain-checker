@@ -1,0 +1,5 @@
+test_mode: true
+contact_id: 1337
+domains:
+  - google.com
+  - youtube.com
