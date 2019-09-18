@@ -5,6 +5,8 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 import json
 import requests
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
@@ -44,11 +46,23 @@ for domain in domains_to_check:
 
 # register all remaining domains
 contact_id = config['contact_id']
+new_registered_domains = []
 for domain in available_domains:
-    print('registering ' + domain)
-    registration_request = {'contact_id': contact_id, 'years': '1', 'auto_renew': 'false'}
-    response = requests.post(VERSIO_API_ENDPOINT + 'domains/' + domain, auth=auth, data=registration_request)
+    registration_request = {'contact_id': contact_id, 'years': '1'}
+    response = requests.post(VERSIO_API_ENDPOINT + 'domains/' + domain, auth=auth, json=registration_request)
     json_response = json.loads(response.text)
-    print(json_response)
+    if json_response is True:
+        new_registered_domains.append(domain)
 
-# send notification with registered domains
+if len(new_registered_domains) > 0:
+    # send notification with registered domains using sendgrid
+    message = Mail(
+        from_email=os.getenv('NOTIFICATION_FROM'),
+        to_emails=os.getenv('NOTIFICATION_TO'),
+        subject='Versio Domain Checker registered ' + str(len(new_registered_domains)) + ' domain(s) for you',
+        html_content='Registered domains: ' + ', '.join(new_registered_domains))
+    try:
+        sg = SendGridAPIClient(os.getenv('SENDGRID_KEY'))
+        response = sg.send(message)
+    except Exception as e:
+        print(str(e))
