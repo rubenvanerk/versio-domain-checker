@@ -1,0 +1,10 @@
+{
+    "production": {
+        "aws_region": "eu-central-1",
+        "app_function": "project.check_domains",
+        "profile_name": "default",
+        "project_name": "versio-domain-c",
+        "runtime": "python3.6",
+        "s3_bucket": "zappa-n67caqgai"
+    }
+}
